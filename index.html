@@ -272,6 +272,7 @@ select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;b
       <textarea id="script-en"
         placeholder="Paste your complete English practice script here…&#10;&#10;Parsing: each blank-line-separated paragraph becomes one practice unit.&#10;If the first line of a paragraph looks like a heading (# Title, Part 1…), it becomes the unit title.&#10;Separator lines (---, ___, ***) are automatically removed."
         oninput="deferSaveDraft()"></textarea>
+      <div style="font-size:.75rem;color:var(--muted);margin:5px 0 3px">提示：請以空白行分段，每段將成為一個練習單元。</div>
       <div class="brow">
         <button class="bp" onclick="parseAndBuild()">▶ Parse English Script</button>
         <button id="btn-save-cur" class="bs" onclick="saveCurrentScript()">💾 Save Current Script</button>
