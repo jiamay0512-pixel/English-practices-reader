@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Practice Reader</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f5f1;--surf:#fff;--surf2:#efece6;--bd:#ddd9d0;
+  --text:#2a2826;--muted:#7a746e;
+  --pri:#4a6fa5;--pri-l:#e8eef6;--pri-h:#3a5f95;
+  --curr:#fffbea;
+  --green:#4a9a6f;--green-l:#e8f5ee;
+  --red:#c0392b;--red-l:#ffeaea;
+  --cn-bg:#f4f9f0;--cn-bd:#a8c890;--cn-txt:#2e4a18;
+  --sh:0 1px 4px rgba(0,0,0,.08);--r:8px;
+}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.75}
+button,select,input,label,textarea{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+#app{max-width:1420px;margin:0 auto;padding:16px 14px 80px}
+
+header{text-align:center;margin-bottom:14px}
+header h1{font-size:1.45rem;font-weight:600;color:var(--pri);letter-spacing:-.02em}
+header p{color:var(--muted);font-size:.83rem;margin-top:2px}
+
+.warn-bar{display:flex;gap:10px;align-items:flex-start;background:#fffbea;border:1px solid #e6c229;border-radius:var(--r);padding:10px 14px;margin-bottom:10px;font-size:.82rem;color:#7a5d00}
+.btn-x{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:0;flex-shrink:0}
+
+.panel{background:var(--surf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+.plbl{font-family:sans-serif;font-size:.67rem;font-weight:700;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}
+
+button{cursor:pointer;border:none;border-radius:5px;font-size:.84rem;font-weight:500;transition:all .15s;white-space:nowrap}
+button:disabled{opacity:.38;cursor:not-allowed}
+.bp{background:var(--pri);color:#fff;padding:8px 15px}
+.bp:not(:disabled):hover{background:var(--pri-h)}
+.bs{background:var(--surf2);color:var(--muted);padding:8px 11px;border:1px solid var(--bd)}
+.bs:not(:disabled):hover{background:var(--bd);color:var(--text)}
+.bd{background:var(--surf2);color:var(--red);padding:8px 11px;border:1px solid #e0b0b0}
+.bd:not(:disabled):hover{background:var(--red-l)}
+.bl{background:none;border:none;color:var(--pri);font-size:.79rem;text-decoration:underline;cursor:pointer;padding:0}
+.brow{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center}
+
+/* Library */
+.lib-hdr{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.lib-ht{font-family:sans-serif;font-size:.9rem;font-weight:600;color:var(--text);flex:1}
+.lib-bdg{font-size:.7rem;font-weight:700;background:var(--pri);color:#fff;border-radius:9px;padding:1px 6px;min-width:18px;text-align:center;font-family:sans-serif}
+.lib-bdg.e{background:var(--bd);color:var(--muted)}
+.lib-arr{font-size:.75rem;color:var(--muted);transition:transform .2s}
+.lib-arr.open{transform:rotate(180deg)}
+.lib-bd{margin-top:11px;border-top:1px solid var(--bd);padding-top:11px}
+.lib-srch{width:100%;padding:7px 10px;border:1px solid var(--bd);border-radius:5px;font-size:.83rem;background:var(--bg);color:var(--text);outline:none;margin-bottom:7px}
+.lib-srch:focus{border-color:var(--pri)}
+.lib-list{max-height:240px;overflow-y:auto}
+.lib-emp{padding:14px;text-align:center;color:var(--muted);font-size:.82rem;font-style:italic}
+.lib-it{padding:9px 0;border-bottom:1px solid var(--bd)}
+.lib-it:last-child{border-bottom:none}
+.lib-it.cur{background:var(--pri-l);margin:0 -2px;padding:9px 4px;border-radius:4px}
+.lib-row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.lib-inf{flex:1;min-width:0}
+.lib-nm{font-size:.85rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-mt{font-size:.7rem;color:var(--muted);margin-top:2px}
+.lib-sm{font-size:.74rem;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic}
+.lib-act{display:flex;gap:4px;flex-shrink:0}
+.lbtn{padding:4px 8px;font-size:.73rem;border-radius:4px;cursor:pointer;background:var(--surf2);color:var(--muted);border:1px solid var(--bd)}
+.lbtn:hover{background:var(--pri-l);color:var(--pri)}
+.lbtn.ld{background:var(--pri-l);color:var(--pri);border-color:var(--pri);font-weight:600}
+.lbtn.ld:hover{background:var(--pri);color:#fff}
+.lbtn.dl:hover{background:var(--red-l);color:var(--red);border-color:#e0b0b0}
+.lib-sv{display:flex;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid var(--bd)}
+.lib-ni{flex:1;padding:7px 10px;border:1px solid var(--bd);border-radius:5px;font-size:.83rem;background:var(--bg);color:var(--text);outline:none}
+.lib-ni:focus{border-color:var(--pri)}
+.bsave{padding:7px 13px;border-radius:5px;font-size:.83rem;font-weight:600;background:var(--pri);color:#fff;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+.bsave:hover{background:var(--pri-h)}
+.bsave.ok{background:var(--green)}
+.lib-tools{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* Script tag */
+.scr-tag{font-family:sans-serif;font-size:.73rem;color:var(--pri);background:var(--pri-l);border-radius:4px;padding:3px 8px;display:inline-flex;align-items:center;gap:6px;margin-bottom:7px}
+.scr-tag .xt{cursor:pointer;color:var(--muted)}
+.scr-tag .xt:hover{color:var(--red)}
+
+/* Textareas */
+#script-en{width:100%;min-height:220px;padding:11px;resize:vertical;border:1px solid var(--bd);border-radius:5px;font-family:Georgia,serif;font-size:.92rem;line-height:1.65;color:var(--text);background:var(--bg);outline:none}
+#script-en:focus{border-color:var(--pri)}
+#script-en::placeholder{color:var(--muted);font-style:italic}
+#script-cn{width:100%;min-height:460px;max-height:720px;padding:11px;resize:vertical;border:1px solid var(--cn-bd);border-radius:5px;font-family:'PingFang TC','Microsoft JhengHei',sans-serif;font-size:.9rem;line-height:1.78;color:var(--cn-txt);background:var(--cn-bg);outline:none}
+#script-cn:focus{border-color:#6a9a52}
+#script-cn::placeholder{color:#8ab070;font-style:italic}
+
+/* Three-column grid */
+.three-col{display:grid;grid-template-columns:340px 1fr 256px;gap:14px;align-items:start}
+.three-col.cn-closed{grid-template-columns:42px 1fr 256px}
+
+/* Left: Chinese column */
+.cn-col{min-width:0}
+.cn-col-panel{background:var(--cn-bg);border:1px solid var(--cn-bd);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;position:sticky;top:14px;max-height:calc(100vh - 28px);display:flex;flex-direction:column}
+.cn-col-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;cursor:pointer;user-select:none;flex-shrink:0;background:var(--cn-bg)}
+.cn-col-hdr:hover{background:#e5f0dd}
+.cn-col-lbl{font-family:sans-serif;font-size:.7rem;font-weight:700;color:var(--cn-txt);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.cn-col-arr{font-size:.85rem;color:var(--cn-txt);font-weight:600;flex-shrink:0}
+.cn-col-body{flex:1;overflow-y:auto;padding:11px 13px;border-top:1px solid var(--cn-bd)}
+.three-col.cn-closed .cn-col-lbl{display:none}
+.three-col.cn-closed .cn-col-body{display:none}
+.three-col.cn-closed .cn-col-hdr{justify-content:center}
+
+/* Middle column */
+.main-col{min-width:0}
+
+/* Practice area */
+.prac-hdr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;font-family:sans-serif}
+.prac-ttl{font-size:.88rem;font-weight:600;color:var(--text)}
+.prac-mt{font-size:.75rem;color:var(--muted)}
+
+/* Units table */
+.utable{border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;background:var(--surf)}
+.chdr-row{display:grid;grid-template-columns:1fr 114px;background:var(--surf2);border-bottom:2px solid var(--bd)}
+.chdr{padding:7px 13px;font-family:sans-serif;font-size:.67rem;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.chdr.ctl{border-left:1px solid var(--bd);text-align:center}
+.urow{display:grid;grid-template-columns:1fr 114px;border-bottom:1px solid var(--bd)}
+.urow:last-child{border-bottom:none}
+.urow.curr{background:var(--curr)}
+.urow.excl{opacity:.45}
+.col-en{padding:13px 14px}
+.col-ctl{padding:9px 8px;border-left:1px solid var(--bd);display:flex;flex-direction:column;gap:5px;align-items:stretch}
+.uhdr{display:flex;align-items:flex-start;gap:6px;margin-bottom:7px}
+.uchk{width:14px;height:14px;flex-shrink:0;margin-top:3px;cursor:pointer;accent-color:var(--pri)}
+.uttl{font-family:sans-serif;font-size:.9rem;font-weight:600;color:var(--pri);flex:1}
+.en-t{font-size:.91rem;white-space:pre-wrap;line-height:1.72}
+.ucb{padding:5px 5px;font-size:.73rem;border-radius:4px;border:1px solid var(--bd);background:var(--surf2);color:var(--muted);cursor:pointer;text-align:center}
+.ucb:hover{background:var(--pri-l);color:var(--pri);border-color:var(--pri)}
+.ucb.play{background:var(--pri-l);color:var(--pri);border-color:var(--pri);font-weight:600}
+.ucb.play:hover{background:var(--pri);color:#fff}
+.ucb.del:hover{background:var(--red-l);color:var(--red);border-color:#e0b0b0}
+
+/* Edit row */
+.edit-row{border-bottom:1px solid var(--bd);padding:12px 14px;background:var(--pri-l)}
+.edit-row:last-child{border-bottom:none}
+.ef label{display:block;font-family:sans-serif;font-size:.67rem;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px}
+.ein,.eta{width:100%;padding:7px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--bg);color:var(--text);font-size:.87rem;outline:none;font-family:sans-serif}
+.ein:focus,.eta:focus{border-color:var(--pri)}
+.eta{resize:vertical;min-height:78px;font-family:Georgia,serif;line-height:1.6}
+.eacts{display:flex;gap:7px;margin-top:8px;align-items:center}
+
+/* Right: control column */
+.ctrl-col{position:sticky;top:14px;min-width:0}
+.ccard{background:var(--surf);border:1px solid var(--bd);border-radius:var(--r);padding:13px 14px;box-shadow:var(--sh)}
+.csec{margin-bottom:12px}
+.csec:last-child{margin-bottom:0}
+.clbl{font-family:sans-serif;font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}
+.mcol{display:flex;flex-direction:column;gap:4px}
+.mbtn{padding:7px 10px;border-radius:5px;font-size:.79rem;background:var(--surf2);color:var(--muted);border:1px solid var(--bd);text-align:left;cursor:pointer}
+.mbtn:hover{background:var(--pri-l);color:var(--pri)}
+.mbtn.active{background:var(--pri);color:#fff;border-color:var(--pri)}
+.mode-hint{font-family:sans-serif;font-size:.71rem;color:var(--muted);margin-top:5px;font-style:italic}
+.pbgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.pb{padding:8px 4px;border-radius:5px;border:1px solid var(--bd);background:var(--surf2);color:var(--text);font-size:.78rem;text-align:center;cursor:pointer}
+.pb:not(:disabled):hover{background:var(--pri-l);color:var(--pri)}
+.pb.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.pb.wide{grid-column:span 2}
+.spd-row{display:flex;flex-direction:column;gap:4px}
+.spd-top{display:flex;justify-content:space-between;font-family:sans-serif;font-size:.77rem;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--pri);margin:2px 0}
+select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;background:var(--bg);font-size:.81rem;color:var(--text);outline:none}
+.exp-col{display:flex;flex-direction:column;gap:4px}
+.ebtn{padding:7px 10px;border-radius:5px;font-size:.79rem;border:1px solid var(--bd);background:var(--surf2);color:var(--muted);text-align:left;cursor:pointer}
+.ebtn:hover{background:var(--green-l);color:var(--green)}
+.now-box{font-family:sans-serif;font-size:.76rem;background:var(--surf2);border-radius:4px;padding:7px 9px;min-height:34px;color:var(--muted)}
+.now-ttl{font-weight:600;color:var(--text);font-size:.79rem;margin-bottom:2px}
+.empty-s{text-align:center;padding:38px 16px;color:var(--muted);font-style:italic;font-size:.93rem}
+.mob-tabs{display:none}
+
+@media print{
+  .script-sec,.mob-tabs,.ctrl-col,.cn-col,.prac-hdr,.warn-bar,header p{display:none!important}
+  body{background:#fff;font-size:11pt}
+  #app{max-width:none;padding:10mm}
+  .three-col{display:block}
+  .chdr-row,.col-ctl,.chdr.ctl{display:none!important}
+  .utable{border:1px solid #ccc}
+  .urow{display:block!important;page-break-inside:avoid}
+}
+
+@media(max-width:960px){
+  .three-col,.three-col.cn-closed{grid-template-columns:1fr}
+  .cn-col{order:2}
+  .main-col{order:1}
+  .ctrl-col{order:3;position:static;display:none}
+  .cn-col-panel{position:static;max-height:none}
+  .three-col.cn-closed .cn-col-lbl{display:initial}
+  .three-col.cn-closed .cn-col-hdr{justify-content:space-between}
+  #app[data-tab=controls] .ctrl-col{display:block}
+  #app[data-tab=controls] .script-sec,#app[data-tab=controls] .prac-area,#app[data-tab=controls] .cn-col{display:none}
+  #app[data-tab=units] .script-sec,#app[data-tab=units] .cn-col{display:none}
+  #app[data-tab=script] .prac-area{display:none}
+  .chdr-row{display:none}
+  .urow{display:block}
+  .col-ctl{border-left:none;border-top:1px solid var(--bd);flex-direction:row;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+  .mob-tabs{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--bd);z-index:200}
+  .mtab{flex:1;padding:10px 4px 8px;font-family:sans-serif;font-size:.77rem;font-weight:500;text-align:center;cursor:pointer;border:none;background:none;color:var(--muted);border-top:2px solid transparent}
+  .mtab.active{color:var(--pri);border-top-color:var(--pri)}
+}
+</style>
+</head>
+<body>
+<div id="app" data-tab="script">
+
+<header>
+  <h1>English Practice Reader</h1>
+  <p>Listen · Compare · Repeat</p>
+</header>
+
+<div id="warn-bar" style="display:none" class="warn-bar">
+  <div id="warn-txt" style="flex:1"></div>
+  <button class="btn-x" onclick="dismissWarn()">✕</button>
+</div>
+
+<div class="three-col" id="three-col">
+
+<!-- ═══ Left: Chinese Reference ═══ -->
+<div class="cn-col">
+  <div class="cn-col-panel">
+    <div class="cn-col-hdr" onclick="toggleCnCol()">
+      <span class="cn-col-lbl">Chinese Reference <span style="font-weight:400;font-style:italic;text-transform:none;letter-spacing:0;font-size:.85em;color:#5c8a40">(optional)</span></span>
+      <span id="cn-col-arr" class="cn-col-arr">◀</span>
+    </div>
+    <div id="cn-col-body" class="cn-col-body">
+      <div style="font-family:sans-serif;font-size:.73rem;color:var(--muted);margin-bottom:7px">貼上完整中文翻譯。關閉此欄可隱藏中文參考。</div>
+      <textarea id="script-cn" placeholder="貼上完整中文翻譯…" oninput="deferSaveDraft()"></textarea>
+      <div class="brow" style="margin-top:7px">
+        <button class="bs" style="font-size:.77rem;padding:5px 9px" onclick="clearCnInput()">Clear Chinese</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Middle: Main Content ═══ -->
+<div class="main-col">
+
+  <div class="script-sec">
+
+    <!-- Library -->
+    <div class="panel">
+      <div class="lib-hdr" onclick="toggleLib()">
+        <span class="lib-ht">📚 Saved Scripts</span>
+        <span class="lib-bdg e" id="lib-bdg">0</span>
+        <span class="lib-arr" id="lib-arr">▾</span>
+      </div>
+      <div id="lib-bd" class="lib-bd" style="display:none">
+        <input id="lib-srch" class="lib-srch" placeholder="🔍 Search saved scripts…" oninput="renderLib()">
+        <div id="lib-list" class="lib-list"><div class="lib-emp">No saved scripts yet.</div></div>
+        <div class="lib-sv">
+          <input id="lib-ni" class="lib-ni" placeholder="Script title to save…" onkeydown="if(event.key==='Enter')saveAsNew()">
+          <button id="btn-save-new" class="bsave" onclick="saveAsNew()">💾 Save as New</button>
+        </div>
+        <div class="lib-tools">
+          <button class="bs" onclick="exportLib()" style="font-size:.77rem;padding:5px 9px">⬇ Export JSON</button>
+          <button class="bs" onclick="importLib()" style="font-size:.77rem;padding:5px 9px">⬆ Import JSON</button>
+          <button class="bd" onclick="deleteAllScripts()" style="font-size:.77rem;padding:5px 9px;margin-left:auto">🗑 Delete All</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script link tag -->
+    <div id="scr-tag" style="display:none" class="scr-tag">
+      <span id="tag-nm"></span>
+      <span class="xt" onclick="unlinkScript()" title="Unlink">✕</span>
+    </div>
+
+    <!-- English Script Input -->
+    <div class="panel">
+      <div class="plbl">English Script <span style="color:var(--red);font-size:.8em">required</span></div>
+      <textarea id="script-en"
+        placeholder="Paste your complete English practice script here…&#10;&#10;Parsing: each blank-line-separated paragraph becomes one practice unit.&#10;If the first line of a paragraph looks like a heading (# Title, Part 1…), it becomes the unit title.&#10;Separator lines (---, ___, ***) are automatically removed."
+        oninput="deferSaveDraft()"></textarea>
+      <div class="brow">
+        <button class="bp" onclick="parseAndBuild()">▶ Parse English Script</button>
+        <button id="btn-save-cur" class="bs" onclick="saveCurrentScript()">💾 Save Current Script</button>
+        <button class="bs" onclick="clearEnInput()">Clear English</button>
+        <button class="bd" onclick="resetApp()" style="margin-left:auto">Reset App</button>
+      </div>
+    </div>
+
+  </div><!-- /.script-sec -->
+
+  <!-- Practice area -->
+  <div class="prac-area" id="prac-area" style="display:none">
+    <div class="prac-hdr">
+      <span class="prac-ttl">Practice Units</span>
+      <span class="prac-mt" id="prac-mt"></span>
+      <button class="bl" onclick="setAllPlayback(true)">Select all</button>
+      <span style="color:var(--bd)">·</span>
+      <button class="bl" onclick="setAllPlayback(false)">None</button>
+      <span style="flex:1"></span>
+      <button class="bs" onclick="clearAllUnits()" style="font-size:.77rem;padding:5px 9px">Clear All</button>
+    </div>
+    <div class="utable" id="utable">
+      <div class="chdr-row">
+        <div class="chdr">English</div>
+        <div class="chdr ctl">Unit</div>
+      </div>
+      <div id="ubody"></div>
+    </div>
+  </div>
+
+</div><!-- /.main-col -->
+
+<!-- ═══ Right: Controls ═══ -->
+<div class="ctrl-col">
+<div class="ccard">
+
+  <div class="csec">
+    <div class="clbl">Practice Mode &mdash; <span id="mode-cur" style="font-style:italic;text-transform:none;letter-spacing:0">Normal</span></div>
+    <div class="mcol">
+      <button class="mbtn" id="mode-slow"   onclick="setMode('slow')">🐢 Read Slowly &mdash; 0.75×</button>
+      <button class="mbtn active" id="mode-normal" onclick="setMode('normal')">👤 Normal &mdash; 0.9×</button>
+      <button class="mbtn" id="mode-shadow" onclick="setMode('shadow')">🔁 Shadowing &mdash; 0.8×</button>
+    </div>
+    <div class="mode-hint">Choose a preset, or adjust speed manually.</div>
+  </div>
+
+  <div class="csec">
+    <div class="clbl">Playback</div>
+    <div class="pbgrid">
+      <button class="pb wide" id="pb-play"   onclick="playAll()">▶ Play All Selected</button>
+      <button class="pb" id="pb-pause"  onclick="pauseSpeech()"  disabled>⏸ Pause</button>
+      <button class="pb" id="pb-resume" onclick="resumeSpeech()" disabled>▶ Resume</button>
+      <button class="pb wide" id="pb-stop"   onclick="stopSpeech()"   disabled>⏹ Stop</button>
+      <button class="pb wide" id="pb-rep3"   onclick="repeatSelected(3)" disabled title="Repeat all selected units 3 times">↺ Repeat Selected ×3</button>
+    </div>
+  </div>
+
+  <div class="csec">
+    <div class="clbl">Speed &mdash; <span id="spd-val">0.90×</span></div>
+    <div class="spd-row">
+      <div class="spd-top"><span>0.5×</span><span>1.4×</span></div>
+      <input type="range" id="spd-sl" min="0.5" max="1.4" step="0.05" value="0.9" oninput="setSpeed(parseFloat(this.value))">
+    </div>
+  </div>
+
+  <div class="csec">
+    <div class="clbl">Voice</div>
+    <select id="voice-sel" onchange="setVoice(this.value)"><option value="">Default (System)</option></select>
+  </div>
+
+  <div class="csec">
+    <div class="clbl">Export / Print</div>
+    <div class="exp-col">
+      <button class="ebtn" onclick="exportTxt()">📃 Download as TXT</button>
+      <button class="ebtn" onclick="printSheet()">🖨 Print Practice Sheet</button>
+    </div>
+  </div>
+
+  <div class="csec">
+    <div class="clbl">Now Playing</div>
+    <div class="now-box" id="now-box">
+      <div class="now-ttl">–</div>
+      <div id="status-bar" style="font-size:.74rem">Ready</div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /.ctrl-col -->
+
+</div><!-- /.three-col -->
+</div><!-- #app -->
+
+<nav class="mob-tabs">
+  <button class="mtab active" id="tab-script"   onclick="setTab('script')">📝 Script</button>
+  <button class="mtab"        id="tab-units"    onclick="setTab('units')">📋 Units</button>
+  <button class="mtab"        id="tab-controls" onclick="setTab('controls')">🎚 Controls</button>
+</nav>
+
+<script>
+// SavedScript = { id, title, rawEnglishText, rawChineseText, units: PracticeUnit[], createdAt, updatedAt }
+// PracticeUnit = { id, title, english, includeInPlayback }
+const STORE     = 'englishPracticeReader.savedScripts';
+const DRAFT_KEY = 'englishPracticeReader.currentDraft';
+const SK = { voice:'epr-voice', speed:'epr-speed', mode:'epr-mode' };
+
+const S = {
+  units:[], editingId:null,
+  curIdx:-1, isPlaying:false, isPaused:false,
+  speed:0.9, voiceName:'', mode:'normal',
+  repeatLeft:0, playRounds:0, pauseTimer:null, resumeFn:null,
+  scriptId:null, scriptTitle:''
+};
+const MODE_NAMES = { slow:'Read Slowly', normal:'Normal', shadow:'Shadowing' };
+
+// ── Draft persistence ──────────────────────────────────────
+let draftTimer = null;
+function deferSaveDraft() {
+  if (draftTimer) clearTimeout(draftTimer);
+  draftTimer = setTimeout(saveDraft, 800);
+}
+function saveDraft() {
+  if (draftTimer) { clearTimeout(draftTimer); draftTimer = null; }
+  lsSave(DRAFT_KEY, {
+    rawEnglishText: document.getElementById('script-en')?.value || '',
+    rawChineseText: document.getElementById('script-cn')?.value || '',
+    units: S.units,
+    scriptId: S.scriptId,
+    scriptTitle: S.scriptTitle
+  });
+}
+function restoreDraft() {
+  const d = lsLoad(DRAFT_KEY, null); if (!d) return;
+  if (d.rawEnglishText) document.getElementById('script-en').value = d.rawEnglishText;
+  if (d.rawChineseText) document.getElementById('script-cn').value = d.rawChineseText;
+  if (d.scriptId) {
+    S.scriptId = d.scriptId; S.scriptTitle = d.scriptTitle || '';
+    refreshTag();
+  }
+  if (d.units && d.units.length) {
+    S.units = d.units.map(u => { const {chinese,...r} = u; return r; });
+    renderUnits();
+    document.getElementById('prac-area').style.display = '';
+    refreshCtrl(); refreshPlayLbl(); refreshNow();
+    setPMeta(`${S.units.length} unit${S.units.length!==1?'s':''}`);
+    setStatus('Restored');
+  }
+}
+
+// ── Parser (blank-line first) ──────────────────────────────
+function doParse(rawText) {
+  // Strip separator-only lines; keep blank lines as block delimiters
+  const cleaned = rawText.split('\n').filter(ln => {
+    const t = ln.trim();
+    return !t || !/^[-_*=~]{3,}$/.test(t);
+  }).join('\n').trim();
+
+  const blocks = cleaned.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+  if (!blocks.length) return [];
+
+  return blocks.map((block, i) => {
+    const blines = block.split('\n');
+    const first = blines[0].trim();
+    let title, english;
+    if (/^#{1,6}\s/.test(first) || /^(Part|Section|Chapter|Q:|Question)\b/i.test(first)) {
+      title = first.replace(/^#{1,6}\s*/, '').trim();
+      const body = blines.slice(1).join('\n').trim();
+      english = body;
+    } else {
+      title = `Unit ${i + 1}`;
+      english = block;
+    }
+    return mkUnit(title, english);
+  }).filter(u => u.english.trim());
+}
+
+function mkUnit(title, en) {
+  return { id:uid(), title:title||'Unit', english:(en||'').trim(), includeInPlayback:true };
+}
+
+// ── TTS ────────────────────────────────────────────────────
+const synth = window.speechSynthesis;
+function getVoice() { return S.voiceName ? synth.getVoices().find(v=>v.name===S.voiceName)||null : null; }
+function mkUtt(text, rate) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = rate !== undefined ? rate : S.speed;
+  u.lang = 'en-US';
+  const v = getVoice(); if (v) u.voice = v;
+  return u;
+}
+function nextOn(from) { for (let i=from;i<S.units.length;i++) if(S.units[i].includeInPlayback) return i; return -1; }
+function doNext(after) {
+  const n = nextOn(after+1);
+  if (n !== -1) { speakAt(n, true); return; }
+  // End of one round — start next if rounds remain
+  if (S.playRounds > 0) {
+    S.playRounds--;
+    const f = nextOn(0);
+    if (f !== -1) speakAt(f, true); else endPlay();
+  } else {
+    endPlay();
+  }
+}
+
+function speakAt(idx, cont) {
+  if (idx<0||idx>=S.units.length) { endPlay(); return; }
+  S.curIdx=idx; S.isPlaying=true; S.isPaused=false; S.resumeFn=null;
+  refreshHL(); refreshCtrl(); refreshNow();
+  const u = S.units[idx];
+  if (S.mode==='shadow') { doShadow(u,idx,cont); return; }
+  const txt = (u.title ? u.title+'. ' : '') + u.english;
+  const ut = mkUtt(txt);
+  ut.onend = () => { if (S.isPlaying) afterUnit(idx, cont); };
+  ut.onerror = e => { if (e.error!=='interrupted') setStatus('Error: '+e.error); };
+  synth.speak(ut);
+}
+function afterUnit(idx, cont) {
+  if (S.repeatLeft>0) { S.repeatLeft--; speakAt(idx,false); }
+  else if (cont) doNext(idx);
+  else endPlay();
+}
+function doShadow(unit, idx, cont) {
+  const ps = unit.english.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+  if (unit.title&&ps.length) ps[0] = unit.title+'. '+ps[0];
+  if (!ps.length) { afterUnit(idx,cont); return; }
+  let pi = 0;
+  const next = () => {
+    if (!S.isPlaying||S.isPaused) return;
+    if (pi>=ps.length) { afterUnit(idx,cont); return; }
+    const u = mkUtt(ps[pi], 0.8);
+    u.onend = () => {
+      if (!S.isPlaying||S.isPaused) return;
+      pi++; S.resumeFn = next;
+      S.pauseTimer = setTimeout(()=>{ S.resumeFn=null; if(S.isPlaying&&!S.isPaused) next(); }, 3000);
+    };
+    u.onerror = e => { if(e.error!=='interrupted') setStatus('Error: '+e.error); };
+    synth.speak(u);
+  };
+  next();
+}
+
+// Play All always starts from first selected unit
+function playAll() {
+  synth.cancel(); clrT(); S.resumeFn=null; S.repeatLeft=0; S.playRounds=0;
+  const f = nextOn(0);
+  if (f===-1) { setStatus('No units selected.'); return; }
+  speakAt(f, true);
+}
+function playUnit(idx) { synth.cancel();clrT();S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;speakAt(idx,false); }
+// Repeat all selected units n full rounds
+function repeatSelected(n) {
+  synth.cancel(); clrT(); S.resumeFn=null; S.repeatLeft=0;
+  const f = nextOn(0);
+  if (f===-1) { setStatus('No units selected.'); return; }
+  S.playRounds = n - 1; // first round starts now; n-1 more to go
+  speakAt(f, true);
+}
+function pauseSpeech() {
+  if (!S.isPlaying||S.isPaused) return;
+  clrT(); if(synth.speaking) synth.pause();
+  S.isPaused=true; refreshCtrl(); setStatus('Paused');
+}
+function resumeSpeech() {
+  if (!S.isPaused) return;
+  S.isPaused=false;
+  if (S.resumeFn) { const f=S.resumeFn;S.resumeFn=null;f(); }
+  else synth.resume();
+  refreshCtrl(); setStatus(`Unit ${S.curIdx+1}/${S.units.length}`);
+}
+function stopSpeech() { synth.cancel();clrT();S.resumeFn=null;S.repeatLeft=0;endPlay();setStatus('Stopped'); }
+// After playback ends, reset curIdx so nothing is stuck highlighted
+function endPlay() { S.isPlaying=false;S.isPaused=false;S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;S.curIdx=-1;refreshCtrl();refreshHL();refreshNow(); }
+function clrT() { if(S.pauseTimer){clearTimeout(S.pauseTimer);S.pauseTimer=null;} }
+
+// ── Build / Clear / Reset ──────────────────────────────────
+function applyUnits(units) {
+  synth.cancel();clrT();S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;
+  S.units=units; S.curIdx=-1; S.isPlaying=false; S.isPaused=false; S.editingId=null;
+  renderUnits();
+  document.getElementById('prac-area').style.display='';
+  refreshCtrl(); refreshPlayLbl(); refreshNow();
+  setPMeta(`${units.length} unit${units.length!==1?'s':''}`);
+  setStatus(`${units.length} unit${units.length!==1?'s':''} loaded`);
+}
+function parseAndBuild() {
+  const text = document.getElementById('script-en').value.trim();
+  if (!text) { setStatus('Paste an English script first.'); return; }
+  if (S.units.length && !confirm(`Re-parsing will replace the current ${S.units.length} practice unit${S.units.length!==1?'s':''}. Continue?`)) return;
+  if (text.length > 18000) showWarns([`Script is ${text.length.toLocaleString()} chars. Consider splitting for best results.`]);
+  applyUnits(doParse(text));
+  saveDraft();
+}
+function clearEnInput() {
+  document.getElementById('script-en').value = '';
+  deferSaveDraft();
+}
+function clearCnInput() {
+  document.getElementById('script-cn').value = '';
+  deferSaveDraft();
+}
+function clearAllUnits() {
+  if (!S.units.length) return;
+  if (!confirm(`Clear all ${S.units.length} unit${S.units.length!==1?'s':''}?\nThis does not delete any saved script.`)) return;
+  synth.cancel();clrT();S.resumeFn=null;
+  S.units=[]; S.curIdx=-1; S.isPlaying=false; S.isPaused=false; S.editingId=null;
+  document.getElementById('prac-area').style.display='none';
+  setPMeta(''); setStatus(''); refreshPlayLbl(); saveDraft();
+}
+function resetApp() {
+  if (!confirm('⚠️ Reset App — 確認清除所有資料？\n\n按下確認後，以下資料將全部永久清除，無法復原：\n\n• 目前的英文稿與中文參考\n• 所有練習單元\n• 已儲存的全部腳本（Saved Scripts）\n\n確定要繼續嗎？')) return;
+  synth.cancel();clrT();S.resumeFn=null;
+  S.units=[]; S.curIdx=-1; S.isPlaying=false; S.isPaused=false; S.editingId=null;
+  S.scriptId=null; S.scriptTitle='';
+  document.getElementById('script-en').value='';
+  document.getElementById('script-cn').value='';
+  document.getElementById('prac-area').style.display='none';
+  localStorage.removeItem(DRAFT_KEY);
+  saveLib([]); updateBdg(); renderLib();
+  refreshTag(); setPMeta(''); setStatus(''); refreshPlayLbl(); dismissWarn();
+}
+function unlinkScript() {
+  S.scriptId=null; S.scriptTitle='';
+  refreshTag(); saveDraft();
+}
+
+// Save Current Script: update existing if linked, otherwise save as new
+function saveCurrentScript() {
+  const rawEn = document.getElementById('script-en').value.trim();
+  const rawCn = document.getElementById('script-cn').value.trim();
+  if (!rawEn && !S.units.length) { setStatus('Paste a script first.'); return; }
+  const btn = document.getElementById('btn-save-cur');
+  if (S.scriptId) {
+    const lib = getLib(), s = lib.find(x => x.id === S.scriptId);
+    if (s) {
+      s.rawEnglishText = rawEn;
+      s.rawChineseText = rawCn;
+      s.units = S.units.map(u => ({...u}));
+      s.updatedAt = new Date().toISOString();
+      saveLib(lib); renderLib(); saveDraft();
+      if (btn) { btn.textContent='✓ Updated!'; setTimeout(()=>btn.textContent='💾 Save Current Script',2000); }
+      setStatus(`"${s.title}" updated (${s.units.length} unit${s.units.length!==1?'s':''})`);
+      return;
+    }
+  }
+  // No linked script → behave like Save as New
+  const name = guessTitle() || 'Untitled Script';
+  const lib = getLib();
+  if (lib.length >= 15) { setStatus('Library full (15 max). Delete some first.'); return; }
+  const now = new Date().toISOString(), id = uid();
+  lib.unshift({ id, title:name, rawEnglishText:rawEn, rawChineseText:rawCn,
+    units:S.units.map(u=>({...u})), createdAt:now, updatedAt:now });
+  saveLib(lib);
+  S.scriptId=id; S.scriptTitle=name;
+  refreshTag(); renderLib(); saveDraft();
+  if (btn) { btn.textContent='✓ Saved!'; setTimeout(()=>btn.textContent='💾 Save Current Script',2000); }
+  setStatus(`"${name}" saved (${S.units.length} unit${S.units.length!==1?'s':''})`);
+}
+
+// ── Chinese column toggle ──────────────────────────────────
+let cnColOpen = true;
+function toggleCnCol() {
+  cnColOpen = !cnColOpen;
+  document.getElementById('three-col').classList.toggle('cn-closed', !cnColOpen);
+  document.getElementById('cn-col-arr').textContent = cnColOpen ? '◀' : '▶';
+}
+
+// ── Unit CRUD ──────────────────────────────────────────────
+function toggleUnit(id, checked) {
+  const u=S.units.find(u=>u.id===id); if(!u) return;
+  u.includeInPlayback=checked;
+  document.getElementById(`card-${id}`)?.classList.toggle('excl',!checked);
+  refreshPlayLbl(); saveDraft();
+}
+function setAllPlayback(val) {
+  S.units.forEach(u=>u.includeInPlayback=val); saveDraft();
+  document.querySelectorAll('.uchk').forEach(cb=>cb.checked=val);
+  document.querySelectorAll('.urow').forEach(r=>r.classList.toggle('excl',!val));
+  refreshPlayLbl();
+}
+function editUnit(id) { S.editingId=id; renderUnits(); requestAnimationFrame(()=>document.getElementById(`et-${id}`)?.focus()); }
+function cancelEdit() { S.editingId=null; renderUnits(); }
+function saveEdit(id) {
+  const u=S.units.find(u=>u.id===id); if(!u) return;
+  u.title   = (document.getElementById(`et-${id}`)?.value||'').trim()||u.title;
+  u.english = document.getElementById(`ee-${id}`)?.value||u.english;
+  const ci  = document.getElementById(`ei-${id}`); if(ci) u.includeInPlayback=ci.checked;
+  S.editingId=null; renderUnits(); saveDraft();
+}
+function deleteUnit(id) {
+  if (!confirm('Delete this practice unit?')) return;
+  S.units=S.units.filter(u=>u.id!==id);
+  renderUnits(); refreshPlayLbl(); saveDraft();
+  if (!S.units.length) document.getElementById('prac-area').style.display='none';
+}
+
+// ── Library ────────────────────────────────────────────────
+let libOpen = false;
+function getLib()     { return lsLoad(STORE, []); }
+function saveLib(arr) { lsSave(STORE, arr); updateBdg(); }
+function updateBdg() {
+  const n=getLib().length, el=document.getElementById('lib-bdg'); if(!el) return;
+  el.textContent=n; el.classList.toggle('e',n===0);
+}
+function toggleLib(force) {
+  libOpen = force!==undefined ? force : !libOpen;
+  document.getElementById('lib-bd').style.display = libOpen?'':'none';
+  document.getElementById('lib-arr').classList.toggle('open', libOpen);
+  if (libOpen) {
+    document.getElementById('lib-srch').value='';
+    renderLib();
+    const ni=document.getElementById('lib-ni');
+    if (ni && !ni.value) { const gt=guessTitle(); if(gt) ni.value=gt; }
+  }
+}
+
+function guessTitle() {
+  const t = document.getElementById('script-en').value.trim(); if (!t) return '';
+  const lines = t.split('\n');
+  const h1 = t.match(/^#{1,2}\s+(.+)/m);
+  if (h1) {
+    const ht = h1[1].replace(/^#{1,6}\s*/, '').trim();
+    if (!/^(Part|Section|Chapter)\s+\w/i.test(ht)) return ht.slice(0,60);
+  }
+  const firstPartIdx = lines.findIndex(l =>
+    /^(Part|Section|Chapter)\s+\w/i.test(l.trim()) ||
+    /^#{1,4}\s+(Part|Section|Chapter)\s/i.test(l.trim())
+  );
+  if (firstPartIdx > 0) {
+    for (let i = 0; i < firstPartIdx; i++) {
+      const l = lines[i].trim();
+      if (l && !/^#{1,6}/.test(l)) return l.slice(0,60);
+    }
+  }
+  const first = lines.find(l => l.trim());
+  if (first && first.trim().length <= 80) return first.trim().slice(0,60);
+  return '';
+}
+
+function saveAsNew() {
+  const rawEn = document.getElementById('script-en').value.trim();
+  const rawCn = document.getElementById('script-cn').value.trim();
+  const name  = document.getElementById('lib-ni').value.trim() || guessTitle() || 'Untitled Script';
+  if (!rawEn && !S.units.length) { setStatus('Paste a script first.'); return; }
+  const lib = getLib();
+  if (lib.length >= 15) { setStatus('Library full (15 max). Delete some first.'); return; }
+  const now=new Date().toISOString(), id=uid();
+  lib.unshift({ id, title:name, rawEnglishText:rawEn, rawChineseText:rawCn,
+    units:S.units.map(u=>({...u})), createdAt:now, updatedAt:now });
+  saveLib(lib);
+  document.getElementById('lib-ni').value='';
+  S.scriptId=id; S.scriptTitle=name;
+  refreshTag(); renderLib(); saveDraft();
+  const btn=document.getElementById('btn-save-new');
+  btn.textContent='✓ Saved!'; btn.classList.add('ok');
+  setTimeout(()=>{btn.textContent='💾 Save as New';btn.classList.remove('ok');},2000);
+  setStatus(`"${name}" saved (${S.units.length} unit${S.units.length!==1?'s':''})`);
+}
+
+function loadFromLib(id) {
+  const s=getLib().find(x=>x.id===id); if(!s) return;
+  const en = s.rawEnglishText || s.rawText || '';
+  const cn = s.rawChineseText || '';
+  document.getElementById('script-en').value = en;
+  document.getElementById('script-cn').value = cn;
+  const rawUnits = s.units && s.units.length ? s.units : doParse(en);
+  const units = rawUnits.map(u => { const {chinese,...r}=u; return {...r, id:u.id||uid()}; });
+  applyUnits(units);
+  S.scriptId=s.id; S.scriptTitle=s.title;
+  refreshTag(); toggleLib(false); saveDraft();
+}
+function renameInLib(id) {
+  const lib=getLib(), s=lib.find(x=>x.id===id); if(!s) return;
+  const n=prompt('Rename script:',s.title); if(!n?.trim()) return;
+  s.title=n.trim(); s.updatedAt=new Date().toISOString(); saveLib(lib); renderLib();
+  if(S.scriptId===id){S.scriptTitle=s.title;refreshTag();saveDraft();}
+}
+function dupInLib(id) {
+  const lib=getLib(),s=lib.find(x=>x.id===id); if(!s) return;
+  if(lib.length>=15){setStatus('Library full (15).');return;}
+  const now=new Date().toISOString();
+  lib.splice(lib.indexOf(s)+1,0,{...s,id:uid(),title:s.title+' (copy)',units:s.units.map(u=>({...u,id:uid()})),createdAt:now,updatedAt:now});
+  saveLib(lib); renderLib();
+}
+function delFromLib(id) {
+  if(!confirm('Delete this saved script?\n(Removes the entire script with all its units.)'))return;
+  saveLib(getLib().filter(x=>x.id!==id)); renderLib();
+  if(S.scriptId===id) unlinkScript();
+}
+function deleteAllScripts() {
+  if(!confirm('Delete ALL saved scripts?\n(Cannot be undone)'))return;
+  saveLib([]); renderLib(); setStatus('All saved scripts deleted.');
+}
+function exportLib() {
+  const data=getLib(); if(!data.length){setStatus('No scripts to export.');return;}
+  dlFile(JSON.stringify(data,null,2),'epr-scripts.json','application/json');
+  setStatus(`Exported ${data.length} script(s)`);
+}
+function importLib() {
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try {
+        const data=JSON.parse(ev.target.result);
+        if(!Array.isArray(data))throw new Error('Not an array');
+        const existing=getLib();
+        const seen=new Set(existing.map(s=>s.id));
+        const added=data.filter(s=>s.id&&s.title&&!seen.has(s.id));
+        const merged=[...added,...existing].slice(0,15);
+        saveLib(merged); renderLib();
+        setStatus(`Imported ${added.length} new script(s)`);
+      } catch(e2){alert('Invalid JSON file.');}
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+function renderLib() {
+  const q=(document.getElementById('lib-srch')?.value||'').toLowerCase();
+  const all=getLib().filter(s=>(s.title||'').toLowerCase().includes(q));
+  const el=document.getElementById('lib-list'); if(!el) return;
+  if(!all.length){el.innerHTML=`<div class="lib-emp">${q?'No match.':'No saved scripts yet.'}</div>`;return;}
+  el.innerHTML=all.map(s=>{
+    const cd=new Date(s.createdAt||Date.now()).toLocaleDateString();
+    const ud=s.updatedAt?new Date(s.updatedAt).toLocaleDateString():cd;
+    const n=(s.units||[]).length;
+    const cur=S.scriptId===s.id;
+    const snippet=(s.rawEnglishText||s.rawText||'').replace(/\s+/g,' ').trim().slice(0,90);
+    return `<div class="lib-it${cur?' cur':''}">
+      <div class="lib-row">
+        <div class="lib-inf">
+          <div class="lib-nm" title="${esc(s.title)}">${cur?'▶ ':''}${esc(s.title)}</div>
+          <div class="lib-mt">${n} unit${n!==1?'s':''} · ${cd}${ud!==cd?' · upd '+ud:''}</div>
+          ${snippet?`<div class="lib-sm">${esc(snippet)}…</div>`:''}
+        </div>
+        <div class="lib-act">
+          <button class="lbtn ld" onclick="loadFromLib('${s.id}')">Load</button>
+          <button class="lbtn" onclick="renameInLib('${s.id}')">Rename</button>
+          <button class="lbtn" onclick="dupInLib('${s.id}')">Copy</button>
+          <button class="lbtn dl" onclick="delFromLib('${s.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Export / Print ─────────────────────────────────────────
+function exportTxt() {
+  if (!S.units.length) { setStatus('No units to export.'); return; }
+  const title = S.scriptTitle || 'Practice Script';
+  const cn = document.getElementById('script-cn')?.value?.trim() || '';
+  let txt = `${title}\n${'='.repeat(Math.min(title.length,50))}\n\n`;
+  S.units.forEach(u => { txt += `[${u.title}]\n\n${u.english}\n\n---\n\n`; });
+  if (cn) txt += `Chinese Reference\n${'='.repeat(17)}\n\n${cn}\n`;
+  dlFile(txt, `${sanitizeFilename(title)}.txt`, 'text/plain;charset=utf-8');
+  setStatus(`Downloaded TXT (${S.units.length} units)`);
+}
+
+function printSheet() {
+  const title = S.scriptTitle || 'Practice Script';
+  if (!S.units.length) { setStatus('No units to print.'); return; }
+  const cn = document.getElementById('script-cn')?.value?.trim() || '';
+  const rows = S.units.map(u=>`
+    <div class="unit">
+      <div class="uttl">${escRaw(u.title)}</div>
+      <div class="en">${escRaw(u.english).replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+  const cnSection = cn ? `
+    <h2 style="margin-top:8mm;margin-bottom:4mm;color:#4a6fa5;font-size:14pt;border-bottom:1pt solid #a8c890;padding-bottom:3mm">Chinese Reference</h2>
+    <div style="white-space:pre-wrap;font-family:'PingFang TC','Microsoft JhengHei',sans-serif;font-size:11pt;color:#2e4a18;line-height:1.85">${escRaw(cn)}</div>` : '';
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escRaw(title)}</title>
+  <style>
+    body{font-family:Georgia,serif;margin:15mm;font-size:11pt;line-height:1.6;color:#222}
+    h1{font-size:17pt;margin-bottom:6mm;border-bottom:2pt solid #4a6fa5;padding-bottom:3mm;color:#4a6fa5}
+    .unit{margin-bottom:8mm;page-break-inside:avoid;border-bottom:1pt solid #ddd;padding-bottom:6mm}
+    .uttl{font-size:12pt;font-weight:700;color:#4a6fa5;margin-bottom:4mm}
+    .en{font-size:11pt;line-height:1.65}
+    @media print{body{margin:10mm}}
+  </style></head><body>
+  <h1>${escRaw(title)}</h1>${rows}${cnSection}</body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(html); w.document.close(); w.focus();
+  setTimeout(()=>w.print(),400);
+}
+
+function dlFile(content, name, type) {
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=name; a.click();
+  URL.revokeObjectURL(url);
+}
+function sanitizeFilename(s){ return (s||'script').replace(/[^\w\s\-]/g,'').replace(/\s+/g,'_').slice(0,60); }
+function escRaw(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Settings ───────────────────────────────────────────────
+function setMode(m) {
+  S.mode=m;
+  const sp={slow:0.75,normal:0.9,shadow:0.8};
+  S.speed=sp[m];
+  document.getElementById('spd-sl').value=S.speed;
+  document.getElementById('spd-val').textContent=S.speed.toFixed(2)+'×';
+  ['slow','normal','shadow'].forEach(x=>document.getElementById(`mode-${x}`).classList.toggle('active',x===m));
+  const cur=document.getElementById('mode-cur');
+  if(cur) cur.textContent=MODE_NAMES[m]||m;
+  lsSave(SK.mode,m); lsSave(SK.speed,S.speed);
+}
+function setSpeed(v) {
+  S.speed=v;
+  document.getElementById('spd-val').textContent=v.toFixed(2)+'×';
+  const presets={slow:0.75,normal:0.9,shadow:0.8};
+  const match=Object.entries(presets).find(([,s])=>Math.abs(s-v)<0.01);
+  ['slow','normal','shadow'].forEach(m=>document.getElementById(`mode-${m}`)?.classList.toggle('active',!!match&&match[0]===m));
+  const cur=document.getElementById('mode-cur');
+  if(cur) cur.textContent=match?(MODE_NAMES[match[0]]||match[0]):'Custom';
+  if(match) S.mode=match[0];
+  lsSave(SK.speed,v);
+}
+function setVoice(n) { S.voiceName=n; lsSave(SK.voice,n); }
+
+// ── Render units ───────────────────────────────────────────
+function renderUnits() {
+  const body=document.getElementById('ubody'); if(!body) return;
+  body.innerHTML='';
+  if (!S.units.length) {
+    body.innerHTML='<div class="empty-s">No units — paste a script above and click Parse English Script.</div>';
+    return;
+  }
+  S.units.forEach((u,i)=>{
+    if (S.editingId===u.id) {
+      const div=document.createElement('div');
+      div.className='edit-row'; div.id=`card-${u.id}`;
+      div.innerHTML=`
+        <div style="font-family:sans-serif;font-size:.79rem;font-weight:700;color:var(--pri);margin-bottom:6px">Editing: ${esc(u.title)}</div>
+        <div class="ef" style="margin-bottom:6px"><label>Title</label><input id="et-${u.id}" class="ein" value="${esc(u.title)}"></div>
+        <div class="ef"><label>English</label><textarea id="ee-${u.id}" class="eta" style="width:100%;min-height:100px">${esc(u.english)}</textarea></div>
+        <div class="eacts">
+          <button class="bp" onclick="saveEdit('${u.id}')">Save Changes</button>
+          <button class="bs" onclick="cancelEdit()">Cancel</button>
+          <label style="font-family:sans-serif;font-size:.81rem;color:var(--muted);display:flex;align-items:center;gap:5px;margin-left:8px">
+            <input type="checkbox" id="ei-${u.id}" ${u.includeInPlayback?'checked':''} style="accent-color:var(--pri)"> Include in Play All
+          </label>
+        </div>`;
+      body.appendChild(div);
+    } else {
+      const row=document.createElement('div');
+      row.className='urow'+(u.includeInPlayback?'':' excl')+(i===S.curIdx?' curr':'');
+      row.id=`card-${u.id}`;
+      row.innerHTML=`
+        <div class="col-en">
+          <div class="uhdr">
+            <input type="checkbox" class="uchk" ${u.includeInPlayback?'checked':''} onchange="toggleUnit('${u.id}',this.checked)" title="Include in Play All">
+            <span class="uttl">${esc(u.title)}</span>
+          </div>
+          <div class="en-t">${esc(u.english)}</div>
+        </div>
+        <div class="col-ctl">
+          <button class="ucb play" onclick="playUnit(${i})">▶ Play</button>
+          <button class="ucb" onclick="repeatUnit(${i},3)" title="Repeat 3 times">↺ ×3</button>
+          <button class="ucb" onclick="editUnit('${u.id}')">Edit</button>
+          <button class="ucb del" onclick="deleteUnit('${u.id}')">Delete</button>
+        </div>`;
+      body.appendChild(row);
+    }
+  });
+}
+
+// Repeat a single unit n times (per-unit button)
+function repeatUnit(idx,n) { synth.cancel();clrT();S.resumeFn=null;S.repeatLeft=n-1;S.playRounds=0;speakAt(idx,false); }
+
+// ── UI refresh helpers ─────────────────────────────────────
+function refreshHL() {
+  document.querySelectorAll('.urow').forEach((r,i)=>r.classList.toggle('curr',i===S.curIdx));
+}
+function refreshPlayLbl() {
+  const tot=S.units.length, on=S.units.filter(u=>u.includeInPlayback).length;
+  const el=document.getElementById('pb-play');
+  if(el) el.textContent=tot>0?`▶ Play All Selected (${on}/${tot})`:'▶ Play All Selected';
+}
+function refreshCtrl() {
+  const pl=S.isPlaying&&!S.isPaused, any=S.units.length>0;
+  setBtn('pb-play',any); setBtn('pb-pause',pl); setBtn('pb-resume',S.isPaused);
+  setBtn('pb-stop',S.isPlaying); setBtn('pb-rep3',any);
+  document.getElementById('pb-play')?.classList.toggle('on',pl);
+}
+function refreshNow() {
+  const box=document.getElementById('now-box'); if(!box) return;
+  const u=S.curIdx>=0?S.units[S.curIdx]:null;
+  box.querySelector('.now-ttl').textContent=u?u.title:'–';
+  setStatus(u?(S.isPlaying?(S.isPaused?'Paused':'Playing…'):'Ready'):'Ready');
+}
+function refreshTag() {
+  const tag=document.getElementById('scr-tag'), nm=document.getElementById('tag-nm');
+  if(S.scriptId&&tag&&nm){nm.textContent=`Editing: ${S.scriptTitle}`;tag.style.display='';}
+  else if(tag) tag.style.display='none';
+}
+function setPMeta(t) { const el=document.getElementById('prac-mt'); if(el) el.textContent=t; }
+
+// ── Warnings / misc ────────────────────────────────────────
+function showWarns(list) {
+  const b=document.getElementById('warn-bar');
+  if(!list.length){b.style.display='none';return;}
+  document.getElementById('warn-txt').innerHTML=list.map(w=>`⚠ ${w}`).join('<br>');
+  b.style.display='';
+}
+function dismissWarn() { document.getElementById('warn-bar').style.display='none'; }
+function setStatus(m)  { const e=document.getElementById('status-bar'); if(e) e.textContent=m; }
+function setBtn(id,on) { const e=document.getElementById(id); if(e) e.disabled=!on; }
+function setTab(t) {
+  document.getElementById('app').dataset.tab=t;
+  ['script','units','controls'].forEach(x=>document.getElementById(`tab-${x}`)?.classList.toggle('active',x===t));
+}
+
+// ── Utils ──────────────────────────────────────────────────
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function uid(){return typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function lsSave(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){if(e.name==='QuotaExceededError')setStatus('Storage full — delete some saved scripts.');}}
+function lsLoad(k,d){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;}}
+
+// ── Migration (forward-compat from v4–v8) ─────────────────
+function migrateOldLib() {
+  const old=lsLoad('epr-library',null); if(!old) return;
+  const cur=getLib(); if(cur.length>0) return;
+  const scripts=(old.scripts||[]).map(s=>({
+    id:s.id||uid(), title:s.name||'Imported Script',
+    rawEnglishText:s.rawEnglishText||s.rawText||s.content||'',
+    rawChineseText:s.rawChineseText||'',
+    units:(s.units||[]).map(u=>{ const {chinese,...r}=u; return {...r,id:u.id||uid()}; }),
+    createdAt:s.createdAt||s.savedAt||new Date().toISOString(),
+    updatedAt:s.updatedAt||new Date().toISOString()
+  }));
+  if(scripts.length){saveLib(scripts);localStorage.removeItem('epr-library');}
+}
+function migrateLegacyDraft() {
+  if (lsLoad(DRAFT_KEY,null)) return;
+  const oldScript=lsLoad('epr-script',null);
+  const oldUnits=lsLoad('epr-units',null);
+  const oldCurr=lsLoad('epr-curr',null);
+  if (!oldScript && !(oldUnits&&oldUnits.length)) return;
+  lsSave(DRAFT_KEY, {
+    rawEnglishText:oldScript||'', rawChineseText:'',
+    units:(oldUnits||[]).map(u=>{ const {chinese,...r}=u; return r; }),
+    scriptId:oldCurr?.id||null, scriptTitle:oldCurr?.name||''
+  });
+  ['epr-script','epr-units','epr-curr'].forEach(k=>localStorage.removeItem(k));
+}
+function migrateLibFormat() {
+  const lib=getLib(); let changed=false;
+  lib.forEach(s=>{
+    if(s.rawText&&!s.rawEnglishText){ s.rawEnglishText=s.rawText; delete s.rawText; changed=true; }
+    if(!s.rawChineseText){ s.rawChineseText=''; }
+  });
+  if(changed) saveLib(lib);
+}
+
+// ── Voices ─────────────────────────────────────────────────
+function populateVoices() {
+  const voices=synth.getVoices().filter(v=>v.lang.startsWith('en'));
+  const sel=document.getElementById('voice-sel');
+  sel.innerHTML='<option value="">Default (System)</option>';
+  voices.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=`${v.name} (${v.lang})`;if(v.name===S.voiceName)o.selected=true;sel.appendChild(o);});
+  if(!S.voiceName){
+    const pick=voices.find(v=>['Samantha','Karen','Daniel','Google US English','Microsoft Zira'].some(n=>v.name.includes(n))||(v.lang==='en-US'&&v.localService));
+    if(pick){S.voiceName=pick.name;sel.value=pick.name;}
+  }
+}
+synth.onvoiceschanged=populateVoices;
+populateVoices();
+
+// ── Init ───────────────────────────────────────────────────
+(function init(){
+  migrateOldLib();
+  migrateLegacyDraft();
+  migrateLibFormat();
+
+  const mode  =lsLoad(SK.mode,'normal');
+  const speed =parseFloat(lsLoad(SK.speed,0.9));
+  const voice =lsLoad(SK.voice,'');
+
+  S.mode=mode; S.speed=speed; S.voiceName=voice;
+
+  document.getElementById('spd-sl').value=speed;
+  document.getElementById('spd-val').textContent=speed.toFixed(2)+'×';
+  ['slow','normal','shadow'].forEach(m=>document.getElementById(`mode-${m}`).classList.toggle('active',m===mode));
+
+  const presets={slow:0.75,normal:0.9,shadow:0.8};
+  const matchedMode=Object.entries(presets).find(([,s])=>Math.abs(s-speed)<0.01)?.[0];
+  const cur=document.getElementById('mode-cur');
+  if(cur) cur.textContent=matchedMode?(MODE_NAMES[matchedMode]||matchedMode):'Custom';
+
+  updateBdg();
+  restoreDraft();
+})();
+</script>
+</body>
+</html>
