@@ -452,12 +452,57 @@ function mkUnit(title, en) {
   return { id:uid(), title:title||'Unit', english:(en||'').trim(), includeInPlayback:true };
 }
 
+// ── iOS background-audio protection ───────────────────────
+// Prevents Safari from stopping speech when the screen dims.
+// Two layers: (1) Screen Wake Lock keeps screen on (iOS 16.4+);
+// (2) AudioContext silent ping keeps iOS audio session alive.
+let _wakeLock = null, _audioCtx = null, _keepAliveTimer = null;
+
+async function startPlayProtection() {
+  if ('wakeLock' in navigator) {
+    try {
+      _wakeLock = await navigator.wakeLock.request('screen');
+      _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+    } catch(e) {}
+  }
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') await _audioCtx.resume();
+    clearInterval(_keepAliveTimer);
+    _keepAliveTimer = setInterval(() => {
+      try {
+        const buf = _audioCtx.createBuffer(1, 1, 22050);
+        const src = _audioCtx.createBufferSource();
+        src.buffer = buf; src.connect(_audioCtx.destination); src.start();
+      } catch(e) {}
+    }, 10000);
+  } catch(e) {}
+}
+
+function stopPlayProtection() {
+  clearInterval(_keepAliveTimer); _keepAliveTimer = null;
+  if (_wakeLock) { _wakeLock.release().catch(()=>{}); _wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S.isPlaying && !S.isPaused) {
+    startPlayProtection();
+  }
+});
+
 // ── TTS ────────────────────────────────────────────────────
 const synth = window.speechSynthesis;
+// iOS voices play ~1.75× faster than desktop at the same rate value.
+// We compensate silently so the slider labels remain meaningful.
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IOS_RATE_FACTOR = 0.57;
+
 function getVoice() { return S.voiceName ? synth.getVoices().find(v=>v.name===S.voiceName)||null : null; }
 function mkUtt(text, rate) {
   const u = new SpeechSynthesisUtterance(text);
-  u.rate = rate !== undefined ? rate : S.speed;
+  const r = rate !== undefined ? rate : S.speed;
+  u.rate = isIOS ? Math.max(0.1, r * IOS_RATE_FACTOR) : r;
   u.lang = 'en-US';
   const v = getVoice(); if (v) u.voice = v;
   return u;
@@ -479,6 +524,7 @@ function doNext(after) {
 function speakAt(idx, cont) {
   if (idx<0||idx>=S.units.length) { endPlay(); return; }
   S.curIdx=idx; S.isPlaying=true; S.isPaused=false; S.resumeFn=null;
+  startPlayProtection();
   refreshHL(); refreshCtrl(); refreshNow();
   const u = S.units[idx];
   if (S.mode==='shadow') { doShadow(u,idx,cont); return; }
@@ -543,7 +589,7 @@ function resumeSpeech() {
 }
 function stopSpeech() { synth.cancel();clrT();S.resumeFn=null;S.repeatLeft=0;endPlay();setStatus('Stopped'); }
 // After playback ends, reset curIdx so nothing is stuck highlighted
-function endPlay() { S.isPlaying=false;S.isPaused=false;S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;S.curIdx=-1;refreshCtrl();refreshHL();refreshNow(); }
+function endPlay() { stopPlayProtection();S.isPlaying=false;S.isPaused=false;S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;S.curIdx=-1;refreshCtrl();refreshHL();refreshNow(); }
 function clrT() { if(S.pauseTimer){clearTimeout(S.pauseTimer);S.pauseTimer=null;} }
 
 // ── Build / Clear / Reset ──────────────────────────────────
