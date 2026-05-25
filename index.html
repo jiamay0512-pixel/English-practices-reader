@@ -341,6 +341,9 @@ select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;b
   <div class="csec">
     <div class="clbl">Voice</div>
     <select id="voice-sel" onchange="setVoice(this.value)"><option value="">Default (System)</option></select>
+    <div id="voice-hint" style="display:none;margin-top:5px;font-family:sans-serif;font-size:.69rem;color:#a07000;background:#fffbea;border:1px solid #e6c229;border-radius:4px;padding:5px 8px;line-height:1.4">
+      💡 目前使用低品質語音。可至<br>設定 → 輔助使用 → 語音內容 → 聲音 → English<br>下載 Enhanced 版本改善發音。
+    </div>
   </div>
 
   <div class="csec">
@@ -1076,14 +1079,44 @@ function migrateLibFormat() {
 }
 
 // ── Voices ─────────────────────────────────────────────────
+function voiceQuality(v) {
+  const n = v.name;
+  if (/premium/i.test(n))  return 3;
+  if (/enhanced/i.test(n)) return 2;
+  if (/compact/i.test(n))  return 0;
+  return 1;
+}
 function populateVoices() {
-  const voices=synth.getVoices().filter(v=>v.lang.startsWith('en'));
+  const all = synth.getVoices().filter(v=>v.lang.startsWith('en'));
+  // Sort: Premium > Enhanced > regular > Compact; en-US before others
+  const voices = all.slice().sort((a,b)=>{
+    const qd = voiceQuality(b) - voiceQuality(a); if (qd) return qd;
+    const au = (a.lang==='en-US'?0:1), bu = (b.lang==='en-US'?0:1); if (au!==bu) return au-bu;
+    return a.name.localeCompare(b.name);
+  });
   const sel=document.getElementById('voice-sel');
   sel.innerHTML='<option value="">Default (System)</option>';
-  voices.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=`${v.name} (${v.lang})`;if(v.name===S.voiceName)o.selected=true;sel.appendChild(o);});
+  voices.forEach(v=>{
+    const q=voiceQuality(v);
+    const badge = q===3?'★★ ':q===2?'★ ':q===0?'(compact) ':'';
+    const o=document.createElement('option');
+    o.value=v.name; o.textContent=`${badge}${v.name} (${v.lang})`;
+    if(v.name===S.voiceName) o.selected=true;
+    sel.appendChild(o);
+  });
   if(!S.voiceName){
-    const pick=voices.find(v=>['Samantha','Karen','Daniel','Google US English','Microsoft Zira'].some(n=>v.name.includes(n))||(v.lang==='en-US'&&v.localService));
-    if(pick){S.voiceName=pick.name;sel.value=pick.name;}
+    // Prefer Enhanced/Premium en-US first (especially on iOS)
+    const best = voices.find(v=>v.lang==='en-US' && voiceQuality(v)>=2)
+      || voices.find(v=>['Samantha','Karen','Daniel','Google US English','Microsoft Zira'].some(n=>v.name.includes(n)))
+      || voices.find(v=>v.lang==='en-US' && v.localService)
+      || voices[0];
+    if(best){S.voiceName=best.name;sel.value=best.name;}
+  }
+  // Show hint on iOS if no Enhanced/Premium voice found
+  const hint=document.getElementById('voice-hint');
+  if(hint){
+    const hasGood=voices.some(v=>voiceQuality(v)>=2);
+    hint.style.display = (isIOS && !hasGood) ? '' : 'none';
   }
 }
 synth.onvoiceschanged=populateVoices;
