@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -170,6 +170,16 @@ select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;b
 .empty-s{text-align:center;padding:38px 16px;color:var(--muted);font-style:italic;font-size:.93rem}
 .mob-tabs{display:none}
 
+/* Focus mode */
+.focus-view{display:none;background:var(--surf);border:2px solid var(--pri);border-radius:var(--r);padding:22px 20px;margin-bottom:14px;box-shadow:var(--sh)}
+.focus-view.on{display:block}
+.focus-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:sans-serif}
+.focus-ctr{font-size:.8rem;color:var(--muted);font-weight:600}
+.focus-ttl{font-size:1.05rem;font-weight:700;color:var(--pri);margin-bottom:12px;font-family:sans-serif}
+.focus-txt{font-size:1.08rem;line-height:1.9;white-space:pre-wrap}
+.focus-foot{display:flex;gap:8px;margin-top:20px}
+.focus-foot .pb{flex:1}
+
 @media print{
   .script-sec,.mob-tabs,.ctrl-col,.cn-col,.prac-hdr,.warn-bar,header p{display:none!important}
   body{background:#fff;font-size:11pt}
@@ -292,8 +302,25 @@ select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;b
       <span style="color:var(--bd)">·</span>
       <button class="bl" onclick="setAllPlayback(false)">None</button>
       <span style="flex:1"></span>
+      <button class="bs" id="btn-focus" onclick="toggleFocusMode()" style="font-size:.77rem;padding:5px 9px">🎯 逐段朗讀</button>
       <button class="bs" onclick="clearAllUnits()" style="font-size:.77rem;padding:5px 9px">Clear All</button>
     </div>
+
+    <!-- Focus Mode: one phrase at a time -->
+    <div id="focus-view" class="focus-view">
+      <div class="focus-nav">
+        <span id="focus-ctr" class="focus-ctr"></span>
+        <button class="bs" style="font-size:.77rem;padding:4px 10px" onclick="toggleFocusMode()">✕ 離開逐段模式</button>
+      </div>
+      <div id="focus-hint" style="font-family:sans-serif;font-size:.72rem;color:var(--muted);margin-bottom:12px;font-style:italic">逐段朗讀模式・語音播完自動跳下一段・手機免手動滑動</div>
+      <div id="focus-ttl" class="focus-ttl"></div>
+      <div id="focus-txt" class="focus-txt"></div>
+      <div class="focus-foot">
+        <button class="pb" id="focus-prev" onclick="focusPrev()">← Prev</button>
+        <button class="pb" id="focus-next" onclick="focusNext()">Next →</button>
+      </div>
+    </div>
+
     <div class="utable" id="utable">
       <div class="chdr-row">
         <div class="chdr">English</div>
@@ -327,6 +354,7 @@ select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;b
       <button class="pb" id="pb-resume" onclick="resumeSpeech()" disabled>▶ Resume</button>
       <button class="pb wide" id="pb-stop"   onclick="stopSpeech()"   disabled>⏹ Stop</button>
       <button class="pb wide" id="pb-rep3"   onclick="repeatSelected(3)" disabled title="Repeat all selected units 3 times">↺ Repeat Selected ×3</button>
+      <button class="pb wide" id="btn-focus2" onclick="toggleFocusMode()" style="background:var(--surf2);color:var(--muted);border:1px solid var(--bd)">🎯 逐段朗讀 Focus Mode: Off</button>
     </div>
   </div>
 
@@ -342,7 +370,7 @@ select{width:100%;padding:6px 7px;border:1px solid var(--bd);border-radius:4px;b
     <div class="clbl">Voice</div>
     <select id="voice-sel" onchange="setVoice(this.value)"><option value="">Default (System)</option></select>
     <div id="voice-hint" style="display:none;margin-top:5px;font-family:sans-serif;font-size:.69rem;color:#a07000;background:#fffbea;border:1px solid #e6c229;border-radius:4px;padding:5px 8px;line-height:1.4">
-      💡 目前使用低品質語音。可至<br>設定 → 輔助使用 → 語音內容 → 聲音 → English<br>下載 Enhanced 版本改善發音。
+      💡 iPhone 語音品質較低。可至<br>設定 → 輔助使用 → 語音內容 → 聲音 → English<br>下載 Enhanced 版本改善發音。
     </div>
   </div>
 
@@ -528,6 +556,7 @@ function speakAt(idx, cont) {
   if (idx<0||idx>=S.units.length) { endPlay(); return; }
   S.curIdx=idx; S.isPlaying=true; S.isPaused=false; S.resumeFn=null;
   startPlayProtection();
+  if (focusMode) updateFocusView(idx);
   refreshHL(); refreshCtrl(); refreshNow();
   const u = S.units[idx];
   if (S.mode==='shadow') { doShadow(u,idx,cont); return; }
@@ -592,7 +621,7 @@ function resumeSpeech() {
 }
 function stopSpeech() { synth.cancel();clrT();S.resumeFn=null;S.repeatLeft=0;endPlay();setStatus('Stopped'); }
 // After playback ends, reset curIdx so nothing is stuck highlighted
-function endPlay() { stopPlayProtection();S.isPlaying=false;S.isPaused=false;S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;S.curIdx=-1;refreshCtrl();refreshHL();refreshNow(); }
+function endPlay() { stopPlayProtection();const _li=S.curIdx;S.isPlaying=false;S.isPaused=false;S.resumeFn=null;S.repeatLeft=0;S.playRounds=0;S.curIdx=-1;refreshCtrl();refreshHL();refreshNow();if(focusMode&&_li>=0)updateFocusView(_li); }
 function clrT() { if(S.pauseTimer){clearTimeout(S.pauseTimer);S.pauseTimer=null;} }
 
 // ── Build / Clear / Reset ──────────────────────────────────
@@ -918,6 +947,52 @@ function dlFile(content, name, type) {
 function sanitizeFilename(s){ return (s||'script').replace(/[^\w\s\-]/g,'').replace(/\s+/g,'_').slice(0,60); }
 function escRaw(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+
+// ── Focus mode (one-phrase-at-a-time) ──────────────────────
+let focusMode = false;
+function toggleFocusMode() {
+  focusMode = !focusMode;
+  document.getElementById('focus-view').classList.toggle('on', focusMode);
+  document.getElementById('utable').style.display = focusMode ? 'none' : '';
+  const lbl  = focusMode ? '🎯 逐段朗讀：ON'    : '🎯 逐段朗讀';
+  const lbl2 = focusMode ? '🎯 逐段朗讀 Focus Mode: On' : '🎯 逐段朗讀 Focus Mode: Off';
+  const b1 = document.getElementById('btn-focus');  if (b1) b1.textContent = lbl;
+  const b2 = document.getElementById('btn-focus2'); if (b2) b2.textContent = lbl2;
+  if (b2) {
+    b2.style.background = focusMode ? 'var(--pri)' : 'var(--surf2)';
+    b2.style.color      = focusMode ? '#fff'        : 'var(--muted)';
+    b2.style.border     = focusMode ? '1px solid var(--pri)' : '1px solid var(--bd)';
+  }
+  if (focusMode) {
+    const i = S.curIdx >= 0 ? S.curIdx : (nextOn(0) >= 0 ? nextOn(0) : 0);
+    updateFocusView(i);
+  }
+}
+function updateFocusView(idx) {
+  const i = idx !== undefined ? idx : (S.curIdx >= 0 ? S.curIdx : 0);
+  if (i < 0 || !S.units.length || i >= S.units.length) return;
+  const u = S.units[i];
+  document.getElementById('focus-ctr').textContent = `${i+1} / ${S.units.length}`;
+  document.getElementById('focus-ttl').textContent = u.title;
+  document.getElementById('focus-txt').textContent = u.english;
+  document.getElementById('focus-prev').disabled = i <= 0;
+  document.getElementById('focus-next').disabled = i >= S.units.length - 1;
+}
+function focusPrev() {
+  const i = S.curIdx >= 0 ? S.curIdx : 0;
+  if (i <= 0) return;
+  synth.cancel(); clrT(); S.resumeFn = null; S.repeatLeft = 0;
+  if (S.isPlaying) speakAt(i - 1, true);
+  else { S.curIdx = i - 1; updateFocusView(i - 1); }
+}
+function focusNext() {
+  const i = S.curIdx >= 0 ? S.curIdx : -1;
+  const nxt = i >= 0 ? nextOn(i + 1) : nextOn(0);
+  if (nxt < 0) return;
+  synth.cancel(); clrT(); S.resumeFn = null; S.repeatLeft = 0;
+  if (S.isPlaying) speakAt(nxt, true);
+  else { S.curIdx = nxt; updateFocusView(nxt); }
+}
 // ── Settings ───────────────────────────────────────────────
 function setMode(m) {
   S.mode=m;
@@ -1105,14 +1180,14 @@ function populateVoices() {
     sel.appendChild(o);
   });
   if(!S.voiceName){
-    // Prefer Enhanced/Premium en-US first (especially on iOS)
+    // On iOS: prefer Enhanced/Premium en-US first
     const best = voices.find(v=>v.lang==='en-US' && voiceQuality(v)>=2)
       || voices.find(v=>['Samantha','Karen','Daniel','Google US English','Microsoft Zira'].some(n=>v.name.includes(n)))
       || voices.find(v=>v.lang==='en-US' && v.localService)
       || voices[0];
     if(best){S.voiceName=best.name;sel.value=best.name;}
   }
-  // Show hint on iOS if no Enhanced/Premium voice found
+  // Show hint if all voices are compact quality (user hasn't downloaded Enhanced)
   const hint=document.getElementById('voice-hint');
   if(hint){
     const hasGood=voices.some(v=>voiceQuality(v)>=2);
