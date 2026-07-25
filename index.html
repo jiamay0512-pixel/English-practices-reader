@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1161,6 +1161,18 @@ function voiceQuality(v) {
   if (/compact/i.test(n))  return 0;
   return 1;
 }
+function pickStandardVoice(voices) {
+  const standard = voices.filter(v=>voiceQuality(v)===1);
+  return standard.find(v=>v.lang==='en-US' && /^Samantha$/i.test(v.name))
+    || standard.find(v=>v.lang==='en-US' && /Samantha/i.test(v.name))
+    || standard.find(v=>v.lang==='en-US' && /Google US English/i.test(v.name))
+    || standard.find(v=>v.lang==='en-US' && /Microsoft (Aria|Zira|Jenny)/i.test(v.name))
+    || standard.find(v=>v.lang==='en-US' && v.localService)
+    || standard.find(v=>v.lang==='en-US')
+    || standard[0]
+    || voices.find(v=>v.lang==='en-US')
+    || voices[0];
+}
 function populateVoices() {
   const all = synth.getVoices().filter(v=>v.lang.startsWith('en'));
   // Sort: Premium > Enhanced > regular > Compact; en-US before others
@@ -1179,14 +1191,17 @@ function populateVoices() {
     if(v.name===S.voiceName) o.selected=true;
     sel.appendChild(o);
   });
-  if(!S.voiceName){
-    // On iOS: prefer Enhanced/Premium en-US first
-    const best = voices.find(v=>v.lang==='en-US' && voiceQuality(v)>=2)
-      || voices.find(v=>['Samantha','Karen','Daniel','Google US English','Microsoft Zira'].some(n=>v.name.includes(n)))
-      || voices.find(v=>v.lang==='en-US' && v.localService)
-      || voices[0];
-    if(best){S.voiceName=best.name;sel.value=best.name;}
-  }
+  const savedVoice = voices.find(v=>v.name===S.voiceName);
+  if(!savedVoice){
+    const standardVoice = pickStandardVoice(voices);
+    if(standardVoice){
+      S.voiceName=standardVoice.name;
+      sel.value=standardVoice.name;
+      lsSave(SK.voice,standardVoice.name);
+    }
+  } else {
+    sel.value=savedVoice.name;
+  }  }
   // Show hint if all voices are compact quality (user hasn't downloaded Enhanced)
   const hint=document.getElementById('voice-hint');
   if(hint){
@@ -1195,7 +1210,6 @@ function populateVoices() {
   }
 }
 synth.onvoiceschanged=populateVoices;
-populateVoices();
 
 // ── Init ───────────────────────────────────────────────────
 (function init(){
@@ -1208,6 +1222,7 @@ populateVoices();
   const voice =lsLoad(SK.voice,'');
 
   S.mode=mode; S.speed=speed; S.voiceName=voice;
+  populateVoices();
 
   document.getElementById('spd-sl').value=speed;
   document.getElementById('spd-val').textContent=speed.toFixed(2)+'×';
