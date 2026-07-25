@@ -1191,7 +1191,7 @@ function populateVoices() {
     if(v.name===S.voiceName) o.selected=true;
     sel.appendChild(o);
   });
-  const savedVoice = voices.find(v=>v.name===S.voiceName);
+  const savedVoice = voices.find(v=>v.name===S.voiceName && voiceQuality(v)===1);
   if(!savedVoice){
     const standardVoice = pickStandardVoice(voices);
     if(standardVoice){
